@@ -10,9 +10,9 @@ import skia
 from .draw import paint, poly, smooth_path, ellipse, capsule, union, cel, mix
 
 PAL = dict(
-    skin="#f2c39b", skin_sh="#e3a47e", skin_line="#b9785a", blush="#f09a8e",
+    skin="#e9b48a", skin_sh="#d0936b", skin_line="#a86e4e", blush="#e8907f",
     hair="#221a2c", hair_sh="#140f1b", hair_hi="#4a3a5e",
-    shirt="#f1ecf7", shirt_sh="#d8cdea", collar="#c3b1df",
+    shirt="#f3c24a", shirt_sh="#d9a232", collar="#fbf7ee", stripe="#fbf7ee",
     pants="#30375a", pants_sh="#232945",
     shoe="#3d2b2b", shoe_sh="#2a1d1d",
     eye="#2a2033", frame="#9d8bb0", lens="#ffffff",
@@ -20,7 +20,7 @@ PAL = dict(
 
 # proportions (px at scale 1); ground = 0, y measured downward from crown
 H = dict(head_c=102, chin=170, neck=200, shoulder=228, hem=470, hip=455, knee=640, ankle=820, sole=850)
-SH_W, HIP_W = 70, 30
+SH_W, HIP_W = 82, 34
 UPPER, FORE, THIGH, SHIN = 118, 108, 185, 180
 
 
@@ -243,8 +243,8 @@ def draw_character(cv, cx, ground, a, s=1.0, pose=None):
         ank = add(knee, vec(ab * 0.5, fw2, side), SHIN)
         toe_dir = (0, 1, 0)
         def fn():
-            th = capsule(P(*hip), P(*knee), 29 * s, 23 * s)
-            sh = capsule(P(*knee), P(*ank), 23 * s, 19 * s)
+            th = capsule(P(*hip), P(*knee), 34 * s, 26 * s)
+            sh = capsule(P(*knee), P(*ank), 26 * s, 21 * s)
             lg = union(th, sh)
             heel = P(ank[0], ank[1] - 10, ank[2] + 18)
             toe = P(ank[0], ank[1] + 34, ank[2] + 22)
@@ -261,7 +261,7 @@ def draw_character(cv, cx, ground, a, s=1.0, pose=None):
         el = add(sh, vec(ab1, fw1, side), UPPER)
         wr = add(el, vec(ab2, fw2, side), FORE)
         def fn():
-            fore = union(capsule(P(*sh), P(*el), 18 * s, 15 * s), capsule(P(*el), P(*wr), 15 * s, 13 * s))
+            fore = union(capsule(P(*sh), P(*el), 22 * s, 18 * s), capsule(P(*el), P(*wr), 18 * s, 14 * s))
             cel(cv, fore, PAL["skin"], PAL["skin_sh"], light=(-side * 0.8, -0.3), depth=6 * s)
             hv = vec(ab2, fw2, side)
             hp = P(*add(wr, hv, 14))
@@ -272,14 +272,19 @@ def draw_character(cv, cx, ground, a, s=1.0, pose=None):
             thumb_side = P(*add(add(wr, hv, 10), (0, 1, 0), 12))
             cv.drawCircle(thumb_side[0], thumb_side[1], 7 * s, paint(PAL["skin_sh"], 0.8))
             sl_end = add(sh, vec(ab1, fw1, side), UPPER * 0.55)
-            sleeve = capsule(P(*sh), P(*sl_end), 25 * s, 22 * s)
+            sleeve = capsule(P(*sh), P(*sl_end), 30 * s, 26 * s)
             cel(cv, sleeve, PAL["shirt"], PAL["shirt_sh"], light=(-side * 0.8, -0.3), depth=7 * s)
+            cv.save(); cv.clipPath(sleeve, skia.ClipOp.kIntersect, True)
+            b0, b1 = P(*add(sh, vec(ab1, fw1, side), UPPER * 0.36)), P(*add(sh, vec(ab1, fw1, side), UPPER * 0.44))
+            bp = paint(PAL["stripe"], stroke=80 * s); bp.setStrokeCap(skia.Paint.kButt_Cap)
+            cv.drawLine(*b0, *b1, bp)
+            cv.restore()
         items.append((P.depth(side * SH_W, 0) + 1, fn))
 
     def torso():
-        hw_sh = math.hypot(SH_W * math.cos(a), 40 * math.sin(a))
-        hw_w = math.hypot(60 * math.cos(a), 38 * math.sin(a))
-        hw_h = math.hypot(64 * math.cos(a), 40 * math.sin(a))
+        hw_sh = math.hypot(SH_W * math.cos(a), 48 * math.sin(a))
+        hw_w = math.hypot(72 * math.cos(a), 46 * math.sin(a))
+        hw_h = math.hypot(74 * math.cos(a), 46 * math.sin(a))
         fx = 5 * math.sin(a) * s
         x0 = P(0, 0, 0)[0] + fx
         top = P.top
@@ -289,21 +294,24 @@ def draw_character(cv, cx, ground, a, s=1.0, pose=None):
                (x0 + hw_sh * s, y(H["shoulder"] + 16)), (x0 + hw_w * s, y(360)), (x0 + hw_h * s, y(H["hem"]))]
         body = smooth_path(pts, tension=0.35)
         cel(cv, body, PAL["shirt"], PAL["shirt_sh"], light=(-0.9 if math.cos(a) > 0 else 0.9, -0.2), depth=26 * s)
-        cv.drawPath(smooth_path([(x0 - hw_h * s * 0.9, y(H["hem"] - 6)), (x0, y(H["hem"] - 3)), (x0 + hw_h * s * 0.9, y(H["hem"] - 6))], close=False),
-                    paint(PAL["shirt_sh"], stroke=3 * s))
+        cv.save(); cv.clipPath(body, skia.ClipOp.kIntersect, True)
+        for y0, y1 in ((300, 326), (342, 354), (H["hem"] - 18, H["hem"] + 5)):
+            cv.drawRect(skia.Rect(x0 - 200 * s, y(y0), x0 + 200 * s, y(y1)), paint(PAL["stripe"], 0.95))
+        cv.drawRect(skia.Rect(x0 + (hw_h * 0.35 if math.cos(a) > 0 else -hw_h) * s, y(H["shoulder"]), x0 + hw_h * s, y(H["hem"] + 10)), paint(PAL["shirt_sh"], 0.28))
+        cv.restore()
         # neck + collar ring
-        nk = capsule(P(0, 2, H["chin"] - 10), P(0, 2, H["shoulder"] + 4), 22 * s, 24 * s)
+        nk = capsule(P(0, 2, H["chin"] - 10), P(0, 2, H["shoulder"] + 4), 26 * s, 28 * s)
         cel(cv, nk, PAL["skin"], PAL["skin_sh"], depth=8 * s)
         ring = []
         for k in range(41):
             ph = 2 * math.pi * k / 40
-            o, d = 28 * math.cos(ph), 22 * math.sin(ph)
+            o, d = 31 * math.cos(ph), 25 * math.sin(ph)
             if P.depth(o, d) > -2:
-                ring.append(P(o, d, H["shoulder"] + 6 + 6 * max(0, math.sin(ph))))
+                ring.append(P(o, d, H["shoulder"] + 2 + 10 * max(0, math.sin(ph))))
             elif len(ring) > 1:
-                cv.drawPath(poly(ring, close=False), paint(PAL["collar"], stroke=9 * s)); ring = []
+                cv.drawPath(poly(ring, close=False), paint(PAL["collar"], stroke=11 * s)); ring = []
         if len(ring) > 1:
-            cv.drawPath(poly(ring, close=False), paint(PAL["collar"], stroke=9 * s))
+            cv.drawPath(poly(ring, close=False), paint(PAL["collar"], stroke=11 * s))
     items.append((0, torso))
     leg(-1, p["leg_r"]); leg(1, p["leg_l"])
     arm(-1, p["arm_r"], p["hand_r"]); arm(1, p["arm_l"], p["hand_l"])

@@ -21,7 +21,7 @@ def card(cv, x, y, w, h):
 
 surf = skia.Surface(W, Hh); cv = surf.getCanvas(); cv.clear(skia.Color4f(0.965, 0.937, 0.894, 1))
 text(cv, "Main Character - Home (T-Shirt & Trousers)", 60, 90, 58, bold=True)
-text(cv, "Production model sheet v2  |  soft-shaded flat 2D  |  height = 5 heads  |  identical rig in every view", 62, 140, 28, SUB)
+text(cv, "Production model sheet v3  |  age 20-25  |  soft-shaded flat 2D  |  height = 5 heads  |  identical rig in every view", 62, 140, 28, SUB)
 
 # ---------------- turnaround
 G, S = 1150, 1.08
@@ -45,7 +45,7 @@ px, py = 2420, 220
 card(cv, px - 30, py - 50, 740, 930)
 text(cv, "Colour palette", px, py, 36, bold=True)
 sw = [("Skin", PAL["skin"]), ("Skin shadow", PAL["skin_sh"]), ("Hair", PAL["hair"]), ("Hair highlight", PAL["hair_hi"]),
-      ("T-shirt", PAL["shirt"]), ("T-shirt shadow", PAL["shirt_sh"]), ("Collar", PAL["collar"]), ("Trousers", PAL["pants"]),
+      ("T-shirt", PAL["shirt"]), ("T-shirt shadow", PAL["shirt_sh"]), ("Stripes & collar", PAL["stripe"]), ("Trousers", PAL["pants"]),
       ("Trousers shadow", PAL["pants_sh"]), ("Shoes", PAL["shoe"]), ("Glasses frame", PAL["frame"]), ("Blush", PAL["blush"])]
 for i, (n, c) in enumerate(sw):
     yy = py + 40 + i * 68
